@@ -16,7 +16,6 @@
 #import "SRKeyCodeTransformer.h"
 #import "SRModifierFlagsTransformer.h"
 
-
 NSString *const SRShortcutKeyCode = @"keyCode";
 
 NSString *const SRShortcutModifierFlagsKey = @"modifierFlags";
@@ -26,12 +25,16 @@ NSString *const SRShortcutCharacters = @"characters";
 NSString *const SRShortcutCharactersIgnoringModifiers = @"charactersIgnoringModifiers";
 
 
+// (JJ) Determines whether help texts are displayed on labels
+BOOL _SRRecorderControlUseHelpLabel = NO;
+
+
 // Control Layout Constants
 static const CGFloat _SRRecorderControlShapeXRadius = 11.0;
 
 static const CGFloat _SRRecorderControlShapeYRadius = 12.0;
 
-static const CGFloat _SRRecorderControlHeight = 25.0;
+static const CGFloat _SRRecorderControlHeight = 22.0;
 
 static const CGFloat _SRRecorderControlBottomShadowHeightInPixels = 1.0;
 
@@ -379,14 +382,14 @@ static NSValueTransformer *_SRValueTransformerFromBindingOptions(NSDictionary *a
         else
             label = self.stringValue;
 
-        if (![label length])
+        if (![label length] && _SRRecorderControlUseHelpLabel)
             label = label = SRLoc(@"Type shortcut");
     }
     else
     {
         label = self.stringValue;
 
-        if (![label length])
+        if (![label length] && _SRRecorderControlUseHelpLabel)
             label = SRLoc(@"Click to record shortcut");
     }
 
@@ -567,7 +570,7 @@ static NSValueTransformer *_SRValueTransformerFromBindingOptions(NSDictionary *a
 
     if (self.isRecording)
     {
-        [self drawSnapBackButton:aDirtyRect];
+//        [self drawSnapBackButton:aDirtyRect];
         [self drawClearButton:aDirtyRect];
     }
 }
@@ -941,7 +944,7 @@ static NSValueTransformer *_SRValueTransformerFromBindingOptions(NSDictionary *a
     // If you're going to change layout of the view, uncomment the line below, look what it typically returns and update the constant.
     // TODO: Hopefully it will be fixed some day in Cocoa and therefore in SRRecorderControl.
 //    CGFloat baseline = fdim(NSHeight(self.bounds), _SRRecorderControlHeight) + floor(_SRRecorderControlBaselineOffset - [self.labelAttributes[NSFontAttributeName] descender]);
-    return 8.0;
+    return 6.0;
 }
 
 - (NSSize)intrinsicContentSize
@@ -1122,9 +1125,11 @@ static NSValueTransformer *_SRValueTransformerFromBindingOptions(NSDictionary *a
         }
 
         _mouseTrackingButtonTag = _SRRecorderControlInvalidButtonTag;
+    } else {
+        [self endRecording];
     }
 
-    [super mouseUp:anEvent];
+    //    [super mouseUp:anEvent];
 }
 
 - (void)mouseEntered:(NSEvent *)anEvent
@@ -1168,7 +1173,7 @@ static NSValueTransformer *_SRValueTransformerFromBindingOptions(NSDictionary *a
     if (self.isRecording)
     {
         if (self.allowsEscapeToCancelRecording &&
-            anEvent.keyCode == kVK_Escape &&
+            (anEvent.keyCode == kVK_Escape || anEvent.keyCode == kVK_Space) &&
             (anEvent.modifierFlags & SRCocoaModifierFlagsMask) == 0)
         {
             [self endRecording];
