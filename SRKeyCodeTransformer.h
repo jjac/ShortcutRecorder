@@ -100,7 +100,7 @@
     @brief  These constants represents unicode characters for key codes that do not have appropriate constants
             in Carbon or Cocoa.
  */
-NS_ENUM(unichar, SRKeyCodeGlyph)
+typedef NS_ENUM(unichar, SRKeyCodeGlyph)
 {
     SRKeyCodeGlyphRight = 0x21E5,
     SRKeyCodeGlyphReturn = 0x2305,
