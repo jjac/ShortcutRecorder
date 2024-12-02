@@ -38,12 +38,12 @@
 - (NSString *)transformedValue:(NSDictionary *)aValue
 {
     if (![aValue isKindOfClass:NSDictionary.class] && ![aValue isKindOfClass:SRShortcut.class])
-        return nil;
+        return @"";
 
     NSNumber *keyCode = aValue[SRShortcutKeyKeyCode];
 
     if (![keyCode isKindOfClass:NSNumber.class])
-        return nil;
+        return @"";
 
     NSNumber *modifierFlags = aValue[SRShortcutKeyModifierFlags];
 

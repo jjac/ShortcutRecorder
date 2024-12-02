@@ -38,7 +38,7 @@
 - (NSNumber *)transformedValue:(NSDictionary *)aValue
 {
     if (![aValue isKindOfClass:NSDictionary.class] && ![aValue isKindOfClass:SRShortcut.class])
-        return nil;
+        return [NSNumber numberWithInteger:0];
 
     NSNumber *modifierFlags = aValue[SRShortcutKeyModifierFlags];
 
