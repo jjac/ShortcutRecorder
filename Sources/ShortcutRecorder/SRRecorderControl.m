@@ -46,14 +46,18 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
     NSInvocation *_notifyStyle;
 
     NSTrackingArea *_mainButtonTrackingArea;
+    NSTrackingArea *_errorSymbolTrackingArea;
     NSTrackingArea *_cancelButtonTrackingArea;
     NSTrackingArea *_clearButtonTrackingArea;
 
     _SRRecorderControlButtonTag _mouseTrackingButtonTag;
     NSToolTipTag _cancelButtonToolTipTag;
     NSToolTipTag _clearButtonToolTipTag;
+    NSToolTipTag _errorTooltipTag;
 
     SRShortcut *_objectValue;
+
+    OSStatus _errorCode;
 
     // +NSEvent.modifierFlags may change across run loop calls
     // Extra care is needed to ensure that all methods will see the same flags.
@@ -62,8 +66,10 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
     BOOL _isLazilyInitializingStyle;
     BOOL _didPauseGlobalShortcutMonitor;
 
-    // Controls intrinsic width of the label.
-    NSLayoutConstraint *_labelWidthConstraint;
+    /// Controls width of the error label.
+    ///
+    /// Set its constant to 0 if no error detected.
+    NSLayoutConstraint *_errorWidthConstraint;
 }
 
 - (instancetype)initWithFrame:(NSRect)aFrameRect
@@ -90,6 +96,8 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
     _mouseTrackingButtonTag = _SRRecorderControlInvalidButtonTag;
     _cancelButtonToolTipTag = NSIntegerMax;
     _clearButtonToolTipTag = NSIntegerMax;
+    _errorTooltipTag = NSIntegerMax;
+
     _pausesGlobalShortcutMonitorWhileRecording = YES;
 
     _notifyStyle = [NSInvocation invocationWithMethodSignature:[SRRecorderControlStyle instanceMethodSignatureForSelector:@selector(recorderControlAppearanceDidChange:)]];
@@ -126,6 +134,9 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
     }
 
     [_style removeObserver:self forKeyPath:@"labelDrawingGuide.frame" context:_SRStyleGuideObservingContext];
+
+    if ([_style respondsToSelector:@selector(errorDrawingGuide)])
+        [_style removeObserver:self forKeyPath:@"errorDrawingGuide.frame" context:_SRStyleGuideObservingContext];
 
     if ([_style respondsToSelector:@selector(backgroundDrawingGuide)])
         [_style removeObserver:self forKeyPath:@"backgroundDrawingGuide.frame" context:_SRStyleGuideObservingContext];
@@ -259,7 +270,8 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
         NSAccessibilityPostNotification(self, NSAccessibilityTitleChangedNotification);
         NSAccessibilityPostNotification(self, NSAccessibilityValueChangedNotification);
         [self setNeedsDisplayInRect:self.style.labelDrawingGuide.frame];
-        [self updateLabelConstraints];
+        [self setNeedsDisplayInRect:self.style.errorDrawingGuide.frame];
+        [self updateErrorWidthConstraint];
     }
 }
 
@@ -284,6 +296,20 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
         [NSException raise:NSInternalInconsistencyException format:@"SRRecorderControl's NSValueBinding does not support controller value markers."];
 
     self.objectValue = newValue;
+}
+
+- (OSStatus)errorCode
+{
+    return _errorCode;
+}
+
+-(void)setErrorCode:(OSStatus)errorCode
+{
+    [self willChangeValueForKey:@"errorCode"];
+    _errorCode = errorCode;
+    [self didChangeValueForKey:@"errorCode"];
+
+    self.needsLayout = YES;
 }
 
 - (SRRecorderControlStyle *)style
@@ -329,6 +355,9 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
 
     [_style removeObserver:self forKeyPath:@"labelDrawingGuide.frame" context:_SRStyleGuideObservingContext];
 
+    if ([_style respondsToSelector:@selector(errorDrawingGuide)])
+        [_style removeObserver:self forKeyPath:@"errorDrawingGuide.frame" context:_SRStyleGuideObservingContext];
+
     if ([_style respondsToSelector:@selector(backgroundDrawingGuide)])
         [_style removeObserver:self forKeyPath:@"backgroundDrawingGuide.frame" context:_SRStyleGuideObservingContext];
 
@@ -343,9 +372,10 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
     if ([_style respondsToSelector:@selector(prepareForRecorderControl:)])
         [_style prepareForRecorderControl:self];
 
-    _labelWidthConstraint = [_style.labelDrawingGuide.widthAnchor constraintEqualToConstant:0.0];
-    _labelWidthConstraint.priority = NSLayoutPriorityDefaultHigh + 1;
-    _labelWidthConstraint.active = YES;
+    _errorWidthConstraint = [_style.errorDrawingGuide.widthAnchor constraintEqualToConstant:0.0];
+    _errorWidthConstraint.identifier = @"SR_ErrorDrawingGuide_width";
+    _errorWidthConstraint.priority = NSLayoutPriorityDefaultHigh + 1;
+    _errorWidthConstraint.active = YES;
 
     if ([_style respondsToSelector:@selector(preferredComponents)])
     {
@@ -363,6 +393,14 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
              forKeyPath:@"labelDrawingGuide.frame"
                 options:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew
                 context:_SRStyleGuideObservingContext];
+
+    if ([_style respondsToSelector:@selector(errorDrawingGuide)])
+    {
+        [_style addObserver:self
+                 forKeyPath:@"errorDrawingGuide.frame"
+                    options:NSKeyValueObservingOptionOld | NSKeyValueObservingOptionNew
+                    context:_SRStyleGuideObservingContext];
+    }
 
     if ([_style respondsToSelector:@selector(backgroundDrawingGuide)])
     {
@@ -566,7 +604,7 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
 
         self.needsDisplay = YES;
         [self updateActiveConstraints];
-        [self updateLabelConstraints];
+        [self updateErrorWidthConstraint];
         [self updateTrackingAreas];
         self.toolTip = _SRIfRespondsGet(self.style, recordingTooltip, SRLoc(@"Press keys now"));
 
@@ -643,7 +681,7 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
 
         self.needsDisplay = YES;
         [self updateActiveConstraints];
-        [self updateLabelConstraints];
+        [self updateErrorWidthConstraint];
         [self updateTrackingAreas];
         self.toolTip = _SRIfRespondsGet(self.style, normalTooltip, SRLoc(@"Click to record shortcut"));
 
@@ -699,17 +737,9 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
     }
 }
 
-- (void)updateLabelConstraints
+- (void)updateErrorWidthConstraint
 {
-    NSString *label = self.drawingLabel;
-    NSDictionary *labelAttributes = self.drawingLabelAttributes;
-    CGFloat labelWidth = NSWidth([label boundingRectWithSize:NSMakeSize(9999.0, self.intrinsicContentSize.height)
-                                                     options:0
-                                                  attributes:labelAttributes
-                                                     context:nil]);
-    // Extra 2 points to avoid clipping of smoothing pixels.
-    _labelWidthConstraint.constant = ceil(MAX(labelWidth,
-                                              [labelAttributes[SRMinimalDrawableWidthAttributeName] doubleValue]) + 2.0);
+    _errorWidthConstraint.constant = self.isRecording || self.errorCode == noErr ? 0 : 20;
 }
 
 - (void)drawBackground:(NSRect)aDirtyRect
@@ -776,6 +806,7 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
 - (void)drawInterior:(NSRect)aDirtyRect
 {
     [self drawLabel:aDirtyRect];
+    [self drawError:aDirtyRect];
 
     if (self.isRecording)
     {
@@ -824,6 +855,47 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
 
         [label drawWithRect:labelFrame options:0 attributes:labelAttributes context:nil];
     }
+
+    [NSGraphicsContext restoreGraphicsState];
+}
+
+- (void)drawError:(NSRect)aDirtyRect
+{
+    NSRect frame = self.style.errorDrawingGuide.frame;
+
+#if SR_DEBUG_DRAWING
+    [NSColor.systemBlueColor set];
+    NSRectFill(frame);
+#endif
+
+    if (NSIsEmptyRect(frame) || ![self needsToDrawRect:frame] || self.isRecording || self.errorCode == noErr)
+        return;
+
+    NSString *errorLabel = @"⚠️";
+
+    CGFloat baselineOffset = _SRIfRespondsGet(self.style, baselineLayoutOffsetFromBottom, self.style.baselineDrawingOffsetFromBottom);
+    frame.origin.y = NSMaxY(frame) - baselineOffset;
+    frame = [self backingAlignedRect:frame options:NSAlignRectFlipped |
+                  NSAlignMinXOutward |
+                  NSAlignMinYOutward |
+                  NSAlignMaxXInward |
+                  NSAlignMaxYInward];
+
+    [NSGraphicsContext saveGraphicsState];
+
+#if SR_DEBUG_DRAWING
+    [[NSColor.systemBlueColor highlightWithLevel:0.5] set];
+    NSRectFill(frame);
+#endif
+
+//    CGFloat minWidth = [labelAttributes[SRMinimalDrawableWidthAttributeName] doubleValue];
+//    if (frame.size.width >= minWidth)
+//    {
+        if (!self.isOpaque && self.style.isLabelDrawingFrameOpaque)
+            CGContextSetShouldSmoothFonts(NSGraphicsContext.currentContext.CGContext, true);
+
+    [errorLabel drawWithRect:frame options:0 attributes:nil context:nil];
+//    }
 
     [NSGraphicsContext restoreGraphicsState];
 }
@@ -1220,12 +1292,14 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
 
 - (NSString *)view:(NSView *)aView stringForToolTip:(NSToolTipTag)aTag point:(NSPoint)aPoint userData:(void *)aData
 {
-    if (aTag == _cancelButtonToolTipTag)
+    if (aTag == _errorTooltipTag) {
+        return _SRIfRespondsGet(self.style, errorTooltip, SRLoc(@"Invalid key combination"));
+    } else if (aTag == _cancelButtonToolTipTag)
         return _SRIfRespondsGet(self.style, cancelButtonTooltip, _objectValue != nil ? SRLoc(@"Use old shortcut") : SRLoc(@"Cancel recording"));
     else if (aTag == _clearButtonToolTipTag)
         return _SRIfRespondsGet(self.style, clearButtonTooltip, SRLoc(@"Delete current shortcut"));
     else
-        return [super view:aView stringForToolTip:aTag point:aPoint userData:aData];
+        return @"";
 }
 
 #pragma mark NSCoding
@@ -1429,6 +1503,10 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
                                                                     clearButtonDrawingGuide,
                                                                     frame,
                                                                     NSZeroRect));
+    NSRect errorSymbolFrame = _SRIfRespondsGetProp(self.style,
+                                                   errorDrawingGuide,
+                                                   frame,
+                                                   NSZeroRect);
 
     if (_mainButtonTrackingArea)
         [self removeTrackingArea:_mainButtonTrackingArea];
@@ -1438,6 +1516,24 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
                                                           owner:self
                                                        userInfo:nil];
     [self addTrackingArea:_mainButtonTrackingArea];
+
+    if (_errorSymbolTrackingArea)
+        [self removeTrackingArea:_errorSymbolTrackingArea];
+
+    if (self.errorCode && !self.isRecording) {
+        _errorSymbolTrackingArea = [[NSTrackingArea alloc] initWithRect:errorSymbolFrame
+                                                                options:TrackingOptions
+                                                                  owner:self
+                                                               userInfo:nil];
+        [self addTrackingArea:_errorSymbolTrackingArea];
+        _errorTooltipTag = [self addToolTipRect:_errorSymbolTrackingArea.rect owner:self userData:NULL];
+    } else {
+        if (_errorTooltipTag != NSIntegerMax)
+        {
+            [self removeToolTip:_errorTooltipTag];
+            _errorTooltipTag = NSIntegerMax;
+        }
+    }
 
     if (_cancelButtonTrackingArea)
     {
@@ -1494,7 +1590,7 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
 - (void)updateConstraints
 {
     [self updateActiveConstraints];
-    [self updateLabelConstraints];
+    [self updateErrorWidthConstraint];
     [super updateConstraints];
 }
 
@@ -1828,7 +1924,8 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
         }
 
         [self setNeedsDisplayInRect:self.style.labelDrawingGuide.frame];
-        [self updateLabelConstraints];
+        [self setNeedsDisplayInRect:self.style.errorDrawingGuide.frame];
+        [self updateErrorWidthConstraint];
     }
 
     [super flagsChanged:anEvent];

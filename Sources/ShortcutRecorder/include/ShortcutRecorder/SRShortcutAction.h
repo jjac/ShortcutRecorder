@@ -138,6 +138,11 @@ NS_SWIFT_NAME(ShortcutAction)
 @property (getter=isEnabled) BOOL enabled;
 
 /*!
+ An error code (set when receiver is added to the shortcut monitor).
+ */
+@property () OSStatus registrationErrorCode;
+
+/*!
  Configure the autoupdating shortcut by observing the given key path of the given object.
 
  @discussion

@@ -774,8 +774,10 @@ static void *_SRShortcutMonitorContext = &_SRShortcutMonitorContext;
             [self _addEnabledAction:anAction toShortcut:aNewShortcut forKeyEvent:SRKeyEventTypeUp];
     }
 
-    if (isFirstActionForNewShortcut)
+    if (isFirstActionForNewShortcut) {
         [self didAddShortcut:aNewShortcut];
+        anAction.registrationErrorCode = aNewShortcut.errorCode;
+    }
 
     if (isLastActionForOldShortcut || isFirstActionForNewShortcut)
         [self didChangeValueForKey:@"shortcuts"];
@@ -1201,8 +1203,19 @@ static OSStatus _SRCarbonEventHandler(EventHandlerCallRef aHandler, EventRef anE
                                          kEventHotKeyNoOptions,
                                          &hotKey);
 
+    // Set to YES to simulate error
+    BOOL simulateError = NO;
+
+    if (simulateError) {
+        if (error == noErr) error = 4711;
+        if (hotKey) { UnregisterEventHotKey(hotKey); hotKey = NULL; }
+    }
+
     if (error != noErr || !hotKey)
     {
+        if (error) {
+            aShortcut.errorCode = error;
+        }
         os_trace_error_with_payload("#Critical Failed to register Carbon hot key: %d", error, ^(xpc_object_t d) {
             xpc_dictionary_set_uint64(d, "keyCode", aShortcut.keyCode);
             xpc_dictionary_set_uint64(d, "modifierFlags", aShortcut.modifierFlags);

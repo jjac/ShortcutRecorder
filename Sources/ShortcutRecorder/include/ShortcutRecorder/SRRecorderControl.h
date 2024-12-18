@@ -310,6 +310,11 @@ IB_DESIGNABLE
 @property (nullable, copy) NSDictionary<SRShortcutKey, id> *dictionaryValue;
 
 /*!
+ An error code denoting a problem with the shortcut key combination.
+ */
+@property () OSStatus errorCode;
+
+/*!
  A helper method to propagate view-driven changes back to model.
 
  @discussion
@@ -386,9 +391,9 @@ IB_DESIGNABLE
 - (void)updateActiveConstraints;
 
 /*!
- Called when control's state changes in a way that may affect label's constraints.
+ Called when control's state changes in a way that may affect error label.
  */
-- (void)updateLabelConstraints;
+- (void)updateErrorWidthConstraint;
 
 /*!
  Schedules performSelector to notify style that view's appearance did change.

@@ -13,6 +13,9 @@
 /* Tooltip for the cancel button when the control has no value */
 "Cancel recording" = "Aufnahme abbrechen";
 
+/* Tooltip for warning symbol */
+"Invalid key combination" = "Unerlaubte Tastenkombination";
+
 /* Tooltip for the clear button */
 "Delete current shortcut" = "Aktuellen Kurzbefehl löschen";
 

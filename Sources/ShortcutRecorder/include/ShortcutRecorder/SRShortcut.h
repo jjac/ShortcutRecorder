@@ -149,6 +149,17 @@ NS_SWIFT_NAME(Shortcut)
 @property (nullable, readonly) NSString *characters;
 
 /*!
+ An error object explaining what's wrong with this shortcut
+
+ @discussion
+ E.g. if a particular shortcut couldn't be registered, here is why.
+ - noErr if no error occured.
+
+ @note Does not participate in the equality test.
+ */
+@property () OSStatus errorCode;
+
+/*!
  Representation of the key code without modifier flags.
 
  @discussion

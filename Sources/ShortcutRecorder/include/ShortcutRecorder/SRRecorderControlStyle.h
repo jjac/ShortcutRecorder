@@ -255,6 +255,11 @@ NS_SWIFT_NAME(RecorderControlStyling)
 @property (readonly) NSLayoutGuide *labelDrawingGuide;
 
 /*!
+ The guide to draw view's error label.
+ */
+@property (readonly) NSLayoutGuide *errorDrawingGuide;
+
+/*!
  Constraints that should be always active.
  */
 @property (readonly) NSArray<NSLayoutConstraint *> *alwaysConstraints;
@@ -327,6 +332,7 @@ NS_SWIFT_NAME(RecorderControlStyling)
 @property (readonly) NSString *noValueRecordingLabel;
 
 @property (readonly) NSString *normalTooltip;
+@property (readonly) NSString *errorTooltip;
 @property (readonly) NSString *disabledTooltip;
 @property (readonly) NSString *recordingTooltip;
 @property (readonly) NSString *cancelButtonTooltip;

@@ -957,6 +957,7 @@ NSUserInterfaceLayoutDirection SRRecorderControlStyleComponentsLayoutDirectionTo
         _alignmentGuide = [NSLayoutGuide new];
         _backgroundDrawingGuide = [NSLayoutGuide new];
         _labelDrawingGuide = [NSLayoutGuide new];
+        _errorDrawingGuide = [NSLayoutGuide new];
         _cancelButtonDrawingGuide = [NSLayoutGuide new];
         _clearButtonDrawingGuide = [NSLayoutGuide new];
         _cancelButtonLayoutGuide = [NSLayoutGuide new];
@@ -988,6 +989,7 @@ NSUserInterfaceLayoutDirection SRRecorderControlStyleComponentsLayoutDirectionTo
     [strongRecorderControl addLayoutGuide:self.alignmentGuide];
     [strongRecorderControl addLayoutGuide:self.backgroundDrawingGuide];
     [strongRecorderControl addLayoutGuide:self.labelDrawingGuide];
+    [strongRecorderControl addLayoutGuide:self.errorDrawingGuide];
     [strongRecorderControl addLayoutGuide:self.cancelButtonDrawingGuide];
     [strongRecorderControl addLayoutGuide:self.clearButtonDrawingGuide];
     [strongRecorderControl addLayoutGuide:self.cancelButtonLayoutGuide];
@@ -1102,9 +1104,26 @@ NSUserInterfaceLayoutDirection SRRecorderControlStyleComponentsLayoutDirectionTo
     ];
 
     _displayingConstraints = @[
-        SetConstraint(&_labelToAlignmentConstraint, MakeGteConstraint(self.alignmentGuide.trailingAnchor,
-                                                                      self.labelDrawingGuide.trailingAnchor,
-                                                                      @"SR_labelDrawingGuide_trailingToAlignment")),
+
+        // Error label constraints
+
+        MakeEqConstraint(self.errorDrawingGuide.topAnchor,
+                         self.alignmentGuide.topAnchor,
+                         @"SR_ErrorDrawingGuide_topToAlignment"),
+        MakeEqConstraint(self.errorDrawingGuide.bottomAnchor,
+                         self.alignmentGuide.bottomAnchor,
+                         @"SR_ErrorDrawingGuide_bottomToAlignment"),
+        MakeEqConstraint(self.errorDrawingGuide.trailingAnchor,
+                         self.alignmentGuide.trailingAnchor,
+                         @"SR_ErrorDrawingGuide_trailingToAlignment"),
+
+        // Error label attaches to right-hand side of shortcut label while not recording.
+        // When recording, shortcut label attaches to cancel button (see further down).
+        // Displaying the error (or not) is controlled by the error label's width,
+        // which is managed by the control itself (thus, we keep a reference here)
+        MakeEqConstraint(self.errorDrawingGuide.leadingAnchor,
+                         self.labelDrawingGuide.trailingAnchor,
+                         @"SR_errorDrawingGuide_leadingToLabel"),
     ];
 
     _recordingWithNoValueConstraints = @[
@@ -1227,6 +1246,7 @@ NSUserInterfaceLayoutDirection SRRecorderControlStyleComponentsLayoutDirectionTo
 @synthesize alignmentGuide = _alignmentGuide;
 @synthesize backgroundDrawingGuide = _backgroundDrawingGuide;
 @synthesize labelDrawingGuide = _labelDrawingGuide;
+@synthesize errorDrawingGuide = _errorDrawingGuide;
 @synthesize cancelButtonDrawingGuide = _cancelButtonDrawingGuide;
 @synthesize clearButtonDrawingGuide = _clearButtonDrawingGuide;
 @synthesize cancelButtonLayoutGuide = _cancelButtonLayoutGuide;
@@ -1277,6 +1297,7 @@ NSUserInterfaceLayoutDirection SRRecorderControlStyleComponentsLayoutDirectionTo
     [strongRecorderControl removeLayoutGuide:_alignmentGuide];
     [strongRecorderControl removeLayoutGuide:_backgroundDrawingGuide];
     [strongRecorderControl removeLayoutGuide:_labelDrawingGuide];
+    [strongRecorderControl removeLayoutGuide:_errorDrawingGuide];
     [strongRecorderControl removeLayoutGuide:_cancelButtonDrawingGuide];
     [strongRecorderControl removeLayoutGuide:_clearButtonDrawingGuide];
     [strongRecorderControl removeLayoutGuide:_cancelButtonLayoutGuide];
