@@ -428,7 +428,8 @@ SRShortcutKey const SRShortcutKeyCharactersIgnoringModifiers = @"charactersIgnor
 + (instancetype)new
 {
     [self doesNotRecognizeSelector:_cmd];
-    return nil;
+    // Do NOT explicitly return nil (static analyzer will complain)
+    return [[self alloc] init];
 }
 
 - (instancetype)init

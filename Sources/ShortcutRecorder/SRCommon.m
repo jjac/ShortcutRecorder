@@ -36,7 +36,7 @@ SRModifierFlagString const SRModifierFlagStringShift = @"⇧";
 SRModifierFlagString const SRModifierFlagStringControl = @"⌃";
 
 
-NSBundle *SRBundle()
+NSBundle *SRBundle(void)
 {
 #ifdef SWIFTPM_MODULE_BUNDLE
     return SWIFTPM_MODULE_BUNDLE;
@@ -59,7 +59,8 @@ NSBundle *SRBundle()
 }
 
 
-NSString *SRLoc(NSString *aKey)
+
+NSString *SRLoc(NSString *aKey) __attribute__((annotate("returns_localized_nsstring")))
 {
     return NSLocalizedStringFromTableInBundle(aKey, @"ShortcutRecorder", SRBundle(), nil);
 }

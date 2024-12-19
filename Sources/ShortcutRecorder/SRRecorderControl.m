@@ -871,7 +871,7 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
     if (NSIsEmptyRect(frame) || ![self needsToDrawRect:frame] || self.isRecording || self.errorCode == noErr)
         return;
 
-    NSString *errorLabel = @"⚠️";
+    NSString *errorLabel = SRLoc(@"⚠️");
 
     CGFloat baselineOffset = _SRIfRespondsGet(self.style, baselineLayoutOffsetFromBottom, self.style.baselineDrawingOffsetFromBottom);
     frame.origin.y = NSMaxY(frame) - baselineOffset;

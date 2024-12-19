@@ -1358,9 +1358,9 @@ CGEventRef _Nullable _SRQuartzEventHandler(CGEventTapProxy aProxy, CGEventType a
 
 #pragma mark Methods
 
-- (CGEventRef)handleEvent:(CGEventRef)anEvent
+- (CGEventRef _Nullable)handleEvent:(CGEventRef)anEvent
 {
-    __block __auto_type result = anEvent;
+    __block _Nullable CGEventRef result = anEvent;
 
     os_activity_initiate("-[SRAXGlobalShortcutMonitor handleEvent:]", OS_ACTIVITY_FLAG_DETACHED, ^{
         __auto_type eventKeyCode = CGEventGetIntegerValueField(anEvent, kCGKeyboardEventKeycode);
