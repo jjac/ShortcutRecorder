@@ -786,7 +786,7 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
     if (left && center && right)
     {
         os_log_debug(SR_LOG_DEFAULT, "#Developer drawing background using images");
-        NSDrawThreePartImage(backgroundFrame, left, center, right, NO, NSCompositeSourceOver, 1.0, self.isFlipped);
+        NSDrawThreePartImage(backgroundFrame, left, center, right, NO, NSCompositingOperationSourceOver, 1.0, self.isFlipped);
     }
     else
     {
@@ -920,7 +920,7 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
         return;
 
     [NSGraphicsContext saveGraphicsState];
-    [image drawInRect:cancelButtonFrame fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0 respectFlipped:YES hints:nil];
+    [image drawInRect:cancelButtonFrame fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1.0 respectFlipped:YES hints:nil];
     [NSGraphicsContext restoreGraphicsState];
 }
 
@@ -944,7 +944,7 @@ static void *_SRStyleGuideObservingContext = &_SRStyleGuideObservingContext;
         return;
 
     [NSGraphicsContext saveGraphicsState];
-    [image drawInRect:clearButtonFrame fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0 respectFlipped:YES hints:nil];
+    [image drawInRect:clearButtonFrame fromRect:NSZeroRect operation:NSCompositingOperationSourceOver fraction:1.0 respectFlipped:YES hints:nil];
     [NSGraphicsContext restoreGraphicsState];
 }
 

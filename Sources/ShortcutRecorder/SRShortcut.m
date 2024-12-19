@@ -500,7 +500,7 @@ SRShortcutKey const SRShortcutKeyCharactersIgnoringModifiers = @"charactersIgnor
         case SRKeyCodeF18:
         case SRKeyCodeF19:
         case SRKeyCodeF20:
-            return SRCocoaToCarbonFlags(self.modifierFlags) | NSFunctionKeyMask;
+            return SRCocoaToCarbonFlags(self.modifierFlags) | NSEventModifierFlagFunction;
         default:
             return SRCocoaToCarbonFlags(self.modifierFlags);
     }
