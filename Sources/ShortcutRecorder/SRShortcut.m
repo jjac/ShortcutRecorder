@@ -43,7 +43,7 @@ SRShortcutKey const SRShortcutKeyCharactersIgnoringModifiers = @"charactersIgnor
     __auto_type eventType = aKeyboardEvent.type;
     if (((1 << eventType) & (NSEventMaskKeyDown | NSEventMaskKeyUp | NSEventMaskFlagsChanged)) == 0)
     {
-        os_trace_error("#Error aKeyboardEvent must be either NSEventTypeKeyUp, NSEventTypeKeyDown or NSEventTypeFlagsChanged, but got %lu", aKeyboardEvent.type);
+        os_log_error(SR_LOG_DEFAULT, "#Error aKeyboardEvent must be either NSEventTypeKeyUp, NSEventTypeKeyDown or NSEventTypeFlagsChanged, but got %lu", aKeyboardEvent.type);
         return nil;
     }
 
@@ -80,7 +80,7 @@ SRShortcutKey const SRShortcutKeyCharactersIgnoringModifiers = @"charactersIgnor
                 if (!NSThread.isMainThread)
                 {
                     NSParameterAssert(NO);
-                    os_trace_error("#Error #Developer AppKit failed to extract characters because it is used in a non-main thread, see SRShortcut/shortcutWithEvent:ignoringCharacters:");
+                    os_log_error(SR_LOG_DEFAULT, "#Error #Developer AppKit failed to extract characters because it is used in a non-main thread, see SRShortcut/shortcutWithEvent:ignoringCharacters:");
                 }
                 else
                     @throw;
@@ -471,7 +471,7 @@ SRShortcutKey const SRShortcutKeyCharactersIgnoringModifiers = @"charactersIgnor
 - (UInt32)carbonKeyCode
 {
     if (self.keyCode == SRKeyCodeNone)
-        os_trace_error("#Critical SRKeyCodeNone has no representation in Carbon");
+        os_log_error(SR_LOG_DEFAULT, "#Critical SRKeyCodeNone has no representation in Carbon");
 
     return self.keyCode;
 }

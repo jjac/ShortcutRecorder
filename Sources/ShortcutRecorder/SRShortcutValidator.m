@@ -142,7 +142,7 @@
 
         if (err != noErr)
         {
-            os_trace_error("#Error Unable to read System Shortcuts: %d", err);
+            os_log_error(SR_LOG_DEFAULT, "#Error Unable to read System Shortcuts: %d", err);
             result = NO;
             return;
         }

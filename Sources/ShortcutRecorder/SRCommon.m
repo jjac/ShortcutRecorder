@@ -59,6 +59,16 @@ NSBundle *SRBundle(void)
 }
 
 
+os_log_t SRLogHandle(void)
+{
+    static dispatch_once_t onceToken;
+    static os_log_t logHandle = NULL;
+    dispatch_once(&onceToken, ^{
+        logHandle = os_log_create( "com.kulakov.ShortcutRecorder", "Default");
+    });
+    return logHandle;
+}
+
 
 NSString *SRLoc(NSString *aKey) __attribute__((annotate("returns_localized_nsstring")))
 {

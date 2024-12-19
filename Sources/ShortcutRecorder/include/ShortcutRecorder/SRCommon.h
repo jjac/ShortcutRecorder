@@ -6,6 +6,7 @@
 #import <Cocoa/Cocoa.h>
 #import <Carbon/Carbon.h>
 #import <stdint.h>
+#import <OSLog/OSLog.h>
 
 
 NS_ASSUME_NONNULL_BEGIN
@@ -335,6 +336,14 @@ NS_INLINE NSEventModifierFlags SRCoreGraphicsToCocoaFlags(CGEventFlags aCoreGrap
 NS_SWIFT_NAME(shortcutRecorderBundle())
 NSBundle * SRBundle(void);
 
+
+/*!
+ Return log handle for logging .
+ */
+NS_SWIFT_NAME(shortcutRecorderLogHandle())
+os_log_t SRLogHandle(void);
+
+#define SR_LOG_DEFAULT SRLogHandle()
 
 /*!
  Convenience method to get localized string from the framework bundle.
