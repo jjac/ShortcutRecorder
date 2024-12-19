@@ -1,5 +1,5 @@
 [![CC BY 4.0](https://img.shields.io/badge/License-CC%20BY%204.0-important.svg)](http://creativecommons.org/licenses/by/4.0/)
-![macOS 10.11](https://img.shields.io/badge/macOS-10.11%2B-informational.svg)
+![macOS 10.11](https://img.shields.io/badge/macOS-10.13%2B-informational.svg)
 ![Mac App Store Approved](https://img.shields.io/badge/Mac%20App%20Store-Approved-success.svg)
 
 [![CocoaPods Compatible](https://img.shields.io/badge/CocoaPods-Compatible%201.8+-success.svg)](https://cocoapods.org/pods/ShortcutRecorder)
